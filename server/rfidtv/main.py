@@ -172,6 +172,10 @@ def use_card(uid: str):
         debounce["last_uid"] = uid
 
 
+def cli():
+    app.run(host="0.0.0.0", port=8000, debug=True)
+
+
 if __name__ == "__main__":
     # Run Flask app
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    cli()

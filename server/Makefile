@@ -1,0 +1,22 @@
+# Create a virtualenv at .venv if one doesn't exist,
+# activate the virtualenv, and install the package in editable mode
+
+VENV_DIR := .venv
+PYTHON := python3
+
+.PHONY: dev
+
+dev:
+	@if [ ! -d $(VENV_DIR) ]; then \
+			echo "Creating virtual environment..."; \
+			$(PYTHON) -m venv $(VENV_DIR); \
+			source $(VENV_DIR)/bin/activate && pip install --upgrade pip && pip install -e .; \
+		else \
+			echo "Use existing virtual environment..."; \
+			source $(VENV_DIR)/bin/activate && pip install --upgrade pip && pip install -e .; \
+		fi;
+	@echo "\n\nNow run the following command:"
+	@echo "source .venv/bin/activate\n"
+
+run:
+	source $(VENV_DIR)/bin/activate && source .env && python rfidtv/main.py

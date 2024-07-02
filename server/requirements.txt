@@ -3,3 +3,5 @@ pillow
 PlexAPI
 requests
 loguru
+pydantic
+flask
