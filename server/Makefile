@@ -3,6 +3,7 @@
 
 VENV_DIR := .venv
 PYTHON := python3
+SHELL := /bin/bash
 
 .PHONY: dev
 
