@@ -5,6 +5,9 @@ VENV_DIR := .venv
 PYTHON := python3
 SHELL := /bin/bash
 
+include .env
+export $(shell sed 's/=.*//' .env)
+
 .PHONY: dev
 
 dev:
@@ -23,6 +26,6 @@ run:
 	source $(VENV_DIR)/bin/activate && source .env && python rfidtv/main.py
 
 deploy:
-	docker build -t rfidtv .
+	# docker build -t rfidtv .
 	docker rm -f rfidtv || true
-	source .env && docker run -p 8000:8000 --net=host --name rfidtv --restart=always -d -e PLEX_URI="${PLEX_URI}" -e PLEX_TOKEN="${PLEX_TOKEN}" -v $(shell pwd)/cards.json:/app/cards.json rfidtv
+	docker run -p 8000:8000 --net=host --name rfidtv --restart=always -d -e PLEX_URI="$(PLEX_URI)" -e PLEX_TOKEN="$(PLEX_TOKEN)" -v $(shell pwd)/cards.json:/app/cards.json rfidtv
