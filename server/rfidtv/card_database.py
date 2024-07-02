@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from models import Movie, Card
-import plex
+from rfidtv.models import Movie, Card
+import rfidtv.plex
 import json
 from typing import List, Dict
 from loguru import logger

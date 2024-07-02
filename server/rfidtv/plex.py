@@ -6,7 +6,7 @@ from plexapi.server import PlexServer
 from plexapi.video import Movie as PlexMovie
 from pychromecast.controllers.plex import PlexController
 from pychromecast.controllers.receiver import CastStatus
-from models import Movie
+from rfidtv.models import Movie
 from loguru import logger
 import base64
 

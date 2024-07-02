@@ -10,11 +10,11 @@ from pychromecast.controllers.receiver import CastStatus
 from PIL import Image
 from io import BytesIO
 import requests
-import plex
-import card_database
+import rfidtv.plex
+import rfidtv.card_database
 
-import cast as cast_controller
-import image
+import rfidtv.cast as cast_controller
+import rfidtv.image
 
 from loguru import logger
 
