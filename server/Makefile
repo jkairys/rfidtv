@@ -24,6 +24,5 @@ run:
 
 deploy:
 	docker build -t rfidtv .
-	source .env
 	docker rm -f rfidtv || true
-	docker run -p 8000:8000 --net=host --name rfidtv --restart=always -d -e PLEX_URI="${PLEX_URI}" -e PLEX_TOKEN="${PLEX_TOKEN}" -v $(shell pwd)/cards.json:/app/cards.json rfidtv
+	source .env && docker run -p 8000:8000 --net=host --name rfidtv --restart=always -d -e PLEX_URI="${PLEX_URI}" -e PLEX_TOKEN="${PLEX_TOKEN}" -v $(shell pwd)/cards.json:/app/cards.json rfidtv
