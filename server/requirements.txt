@@ -1,0 +1,5 @@
+pychromecast
+pillow
+PlexAPI
+requests
+loguru

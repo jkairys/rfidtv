@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "mfrc522.h": "c",
+    "httpclient.h": "c"
+  }
+}
