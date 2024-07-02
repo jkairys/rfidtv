@@ -20,3 +20,8 @@ dev:
 
 run:
 	source $(VENV_DIR)/bin/activate && source .env && python rfidtv/main.py
+
+deploy:
+	docker build -t rfidtv .
+	. .env
+	docker run --net=host --name rfidtv --restart=always -d -e PLEX_URI=$PLEX_URI -e PLEX_TOKEN=$PLEX_TOKEN -v $(pwd)/cards.json:/app/cards.json rfidtv
