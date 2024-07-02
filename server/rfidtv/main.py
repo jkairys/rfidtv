@@ -45,7 +45,7 @@ def get_thumbnail():
     if not uri:
         return jsonify({"error": "No uri parameter"}), 404
     try:
-        thumbnail: Image = image.get_thumbnail_from_uri(uri)
+        thumbnail: Image = rfidtv.image.get_thumbnail_from_uri(uri)
         img_io = BytesIO()
         thumbnail.save(img_io, format="JPEG")
         img_io.seek(0)
@@ -61,7 +61,7 @@ def get_movie(movie_name: str):
         return jsonify({"error": "Invalid request. 'movie_name' is required."}), 400
 
     try:
-        movie, plex_movie = plex.fetch_movie(server, movie_name)
+        movie, plex_movie = rfidtv.plex.fetch_movie(server, movie_name)
 
         return json.loads(movie.model_dump_json())
     except ValueError as e:
@@ -78,7 +78,7 @@ def play_movie():
     movie_name = data["movie_name"]
     try:
 
-        movie, plex_movie = plex.fetch_movie(server, movie_name)
+        movie, plex_movie = rfidtv.plex.fetch_movie(server, movie_name)
         logger.debug(f"Playing movie {movie} on chromecast")
         cast_controller.play_on_chromecast(
             plex_controller=plex_controller, movie=plex_movie
@@ -136,9 +136,9 @@ def register_card():
             400,
         )
 
-    card = card_database.Card(uid=data["uid"], title=data["title"])
+    card = rfidtv.card_database.Card(uid=data["uid"], title=data["title"])
     try:
-        card_database.register_card(card)
+        rfidtv.card_database.register_card(card)
         return jsonify({"status": "registered", "card": card.model_dump()})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -148,8 +148,8 @@ def register_card():
 def use_card(uid: str):
     """Endpoint to use a card."""
     try:
-        card = card_database.lookup_card(uid)
-        movie, plex_movie = plex.fetch_movie(server, card.title)
+        card = rfidtv.card_database.lookup_card(uid)
+        movie, plex_movie = rfidtv.plex.fetch_movie(server, card.title)
         response = 200
         if uid != debounce["last_uid"]:
             logger.info(f"Sending play command for movie {movie}")
@@ -163,7 +163,7 @@ def use_card(uid: str):
             )
             response = 201
         return jsonify(movie.model_dump()), response
-    except card_database.UnregisteredCard:
+    except rfidtv.card_database.UnregisteredCard:
         return jsonify({"error": "Unregistered"}), 404
     except Exception as exc:
         logger.exception(f"Failed to use card {uid} - {exc}")
