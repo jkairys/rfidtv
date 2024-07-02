@@ -51,11 +51,19 @@ def play_on_chromecast(
 def cast_status(cast: pychromecast.Chromecast) -> dict:
     """Get the status of the Chromecast as a dict"""
     return {
-        "is_playing": cast.media_controller.is_playing,
+        "is_playing": (
+            cast.media_controller.is_playing
+            if hasattr(cast.media_controller, "is_playing")
+            else False
+        ),
         "player_state": cast.media_controller.status.player_state,
         "duration": cast.media_controller.status.duration,
         "current_time": cast.media_controller.status.current_time,
         "title": cast.media_controller.status.title,
         "images": cast.media_controller.status.images,
-        "thumbnail": cast.media_controller.thumbnail,
+        "thumbnail": (
+            cast.media_controller.thumbnail
+            if hasattr(cast.media_controller, "thumbnail")
+            else ""
+        ),
     }
