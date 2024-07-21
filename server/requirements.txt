@@ -5,3 +5,4 @@ requests
 loguru
 pydantic
 flask
+flask_cors

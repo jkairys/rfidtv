@@ -15,17 +15,22 @@ def get_cast(
 ) -> Tuple[pychromecast.Chromecast, pychromecast.CastBrowser, PlexController]:
     """Get chromecast by name"""
     logger.debug("Searching for casts")
-    casts, browser = pychromecast.get_listed_chromecasts(friendly_names=[cast_name])
+    casts, browser = pychromecast.get_chromecasts()
+    print("Casts:")
+    for cast in casts:
+        print(cast.cast_info.friendly_name)
     plex_controller = PlexController()
     casts: List[pychromecast.Chromecast] = casts
 
-    if len(casts) == 0:
+    our_casts = [cast for cast in casts if cast.cast_info.friendly_name == cast_name]
+
+    if len(our_casts) == 0:
         logger.info(f"No chromecast device found with name={cast_name}")
         sys.exit(1)
     else:
         logger.debug(f"Found cast {casts[0]}")
 
-    cast = casts[0]
+    cast = our_casts[0]
     cast.register_handler(plex_controller)
     logger.debug("Waiting for cast")
     cast.wait()

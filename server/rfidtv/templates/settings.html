@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <title>rfidtv Control Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+  <body>
+    <h1>rfid Settings</h1>
+    Hello there.
+
+    <form id="settings-form">
+      <label for="setting1">Setting 1:</label>
+      <input type="text" id="setting1" name="setting1"><br><br>
+      <label for="setting2">Setting 2:</label>
+      <input type="text" id="setting2" name="setting2"><br><br>
+      <button type="button" onclick="submitSettings()">Submit</button>
+    </form>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+  </body>
+</html>
+

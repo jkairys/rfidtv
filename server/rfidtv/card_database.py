@@ -1,8 +1,6 @@
-from pydantic import BaseModel
-from rfidtv.models import Movie, Card
-import rfidtv.plex
+from rfidtv.models import Card
 import json
-from typing import List, Dict
+from typing import List, Dict, Optional
 from loguru import logger
 
 
@@ -47,7 +45,7 @@ def unregister_card(uid: str):
     save_cards(mapping)
 
 
-def lookup_card(uid: str) -> Card:
+def lookup_card(uid: Optional[str] = None) -> Card:
     """Lookup a card by its UID."""
     if uid is None:
         raise ValueError("No UID provided")
@@ -55,3 +53,8 @@ def lookup_card(uid: str) -> Card:
     if uid not in mapping:
         raise UnregisteredCard(f"Card with UID {uid} has not been registered")
     return mapping.get(uid)
+
+
+def list_all_cards() -> List[Card]:
+    """List all cards."""
+    return [mapping.get(uid) for uid in mapping.keys()]

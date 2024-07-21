@@ -1,15 +1,8 @@
 import os
-import pychromecast
-import sys
-from typing import List, Tuple
 
 from plexapi.server import PlexServer
-from plexapi.video import Movie
-from pychromecast.controllers.plex import PlexController
-from pychromecast.controllers.receiver import CastStatus
 from PIL import Image
 from io import BytesIO
-import requests
 import rfidtv.plex
 import rfidtv.card_database
 
@@ -19,20 +12,23 @@ import rfidtv.image
 from loguru import logger
 
 import base64
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template
 import json
+from flask_cors import CORS
+
+# Enable CORS
 
 
 PLEX_TOKEN = os.getenv("PLEX_TOKEN")
 PLEX_URI = os.getenv("PLEX_URI")
-CAST_NAME = "Office display"
+CAST_NAME = "Living Room TV"
 
 debounce = {"last_uid": None}
 
 
 server = PlexServer(baseurl=PLEX_URI, token=PLEX_TOKEN)
 app = Flask(__name__)
-
+CORS(app)
 
 cast, browser, plex_controller = cast_controller.get_cast(CAST_NAME)
 
@@ -144,6 +140,17 @@ def register_card():
         return jsonify({"error": str(e)}), 400
 
 
+@app.route("/cards", methods=["GET"])
+def list_cards():
+    """Endpoint to list all registered cards."""
+    return jsonify(
+        [
+            json.loads(card.model_dump_json())
+            for card in rfidtv.card_database.list_all_cards()
+        ]
+    )
+
+
 @app.route("/cards/<uid>", methods=["POST"])
 def use_card(uid: str):
     """Endpoint to use a card."""
@@ -170,6 +177,20 @@ def use_card(uid: str):
         return jsonify({"error": str(exc)}), 500
     finally:
         debounce["last_uid"] = uid
+
+
+@app.route("/cards/<uid>", methods=["DELETE"])
+def delete_card(uid: str):
+    """Endpoint to delete a card."""
+    try:
+        rfidtv.card_database.unregister_card(uid)
+        return jsonify({"status": "deleted", "uid": uid})
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/")
+def index():
+    return render_template("settings.html")
 
 
 def cli():
