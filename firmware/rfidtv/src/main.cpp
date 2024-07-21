@@ -5,10 +5,10 @@
 #include <TFT_eSPI.h>
 #include <ArduinoJson.h>
 
-// // Include the jpeg decoder library
+// Include the jpeg decoder library
 #include <TJpg_Decoder.h>
 
-// // Include LittleFS
+// Include LittleFS
 #include <FS.h>
 #include "LittleFS.h"
 #include "rfidreader.h"
@@ -16,14 +16,9 @@
 #include "rfapi.h"
 
 #include <ESPmDNS.h>
-// #include <NetworkUdp.h>
 #include <ArduinoOTA.h>
 #include <ArduinoLog.h>
 #include <WebServer.h>
-
-// Replace with your network credentials
-// const char *ssid = "marvin";
-// const char *password = "gumboots";
 
 #define LOG_LEVEL LOG_LEVEL_INFO
 
