@@ -16,8 +16,11 @@ from flask import Flask, request, jsonify, send_file, render_template
 import json
 from flask_cors import CORS
 
-# Enable CORS
+from dotenv import load_dotenv
 
+
+# Load environment variables from .env file
+load_dotenv()
 
 PLEX_TOKEN = os.getenv("PLEX_TOKEN")
 PLEX_URI = os.getenv("PLEX_URI")
@@ -28,9 +31,32 @@ debounce = {"last_uid": None}
 
 server = PlexServer(baseurl=PLEX_URI, token=PLEX_TOKEN)
 app = Flask(__name__)
+
+# Enable CORS
 CORS(app)
 
-cast, browser, plex_controller = cast_controller.get_cast(CAST_NAME)
+cast_controller.load_casts()
+cast, plex_controller = cast_controller.get_cast(CAST_NAME)
+
+
+@app.route("/casts", methods=["GET"])
+def list_casts():
+    """List all available Chromecast devices"""
+
+    if "refresh" in request.args:
+        logger.info("Refreshing chromecast list")
+        cast_controller.load_casts()
+
+    return jsonify(
+        [
+            {
+                "friendly_name": cast.cast_info.friendly_name,
+                "model_name": cast.cast_info.model_name,
+                "host": cast.cast_info.host,
+            }
+            for cast in cast_controller.list_casts()
+        ]
+    )
 
 
 @app.route("/thumb", methods=["GET"])
@@ -187,6 +213,7 @@ def delete_card(uid: str):
         return jsonify({"status": "deleted", "uid": uid})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
 
 @app.route("/")
 def index():

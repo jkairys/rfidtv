@@ -1,36 +1,29 @@
-import os
 import pychromecast
 import sys
 from typing import List, Tuple
-from plexapi.server import PlexServer
 from plexapi.video import Movie as PlexMovie
 from pychromecast.controllers.plex import PlexController
 from pychromecast.controllers.receiver import CastStatus
 from loguru import logger
-from flask import Flask
 
 
 def get_cast(
     cast_name: str,
-) -> Tuple[pychromecast.Chromecast, pychromecast.CastBrowser, PlexController]:
+) -> Tuple[pychromecast.Chromecast, PlexController]:
     """Get chromecast by name"""
-    logger.debug("Searching for casts")
-    casts, browser = pychromecast.get_chromecasts()
-    print("Casts:")
-    for cast in casts:
-        print(cast.cast_info.friendly_name)
+    logger.debug(f"Searching for cast with name {cast_name}")
+
+    casts, _ = pychromecast.get_listed_chromecasts(friendly_names=[cast_name])
+
     plex_controller = PlexController()
-    casts: List[pychromecast.Chromecast] = casts
 
-    our_casts = [cast for cast in casts if cast.cast_info.friendly_name == cast_name]
-
-    if len(our_casts) == 0:
+    if len(casts) == 0:
         logger.info(f"No chromecast device found with name={cast_name}")
         sys.exit(1)
     else:
         logger.debug(f"Found cast {casts[0]}")
 
-    cast = our_casts[0]
+    cast: pychromecast.Chromecast = casts[0]
     cast.register_handler(plex_controller)
     logger.debug("Waiting for cast")
     cast.wait()
@@ -41,7 +34,7 @@ def get_cast(
     if status.display_name == "Plex":
         logger.debug("Waiting until active")
         cast.media_controller.block_until_active(timeout=5)
-    return cast, browser, plex_controller
+    return cast, plex_controller
 
 
 def play_on_chromecast(

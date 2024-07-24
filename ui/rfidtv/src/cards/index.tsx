@@ -18,21 +18,15 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { CreditCard } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
 import LinkOffIcon from "@mui/icons-material/LinkOff";
+import { CardInterface } from "./interfaces";
+import NewCard from "./new-card";
+
 const url = "http://localhost:8000";
 
-interface CardInterface {
-  title: string;
-  uid: string;
-}
-
 const SettingsForm: React.FC = () => {
-  const [setting1, setSetting1] = useState("");
-  const [setting2, setSetting2] = useState("");
-
   const [filter, setFilter] = useState<string>("");
   const [cards, setCards] = useState<CardInterface[]>([]);
   const [showAddCardDialog, setShowAddCardDialog] = useState(false);
-
   const [filteredCards, setFilteredCards] = useState<CardInterface[]>([]);
 
   const loadCards = async () => {
@@ -60,16 +54,17 @@ const SettingsForm: React.FC = () => {
     );
   }, [filter, cards]);
 
-  const handleSubmit = async () => {
-    const response = await fetch("http://localhost:8000/settings", {
+  const createCard = async ({ card }: { card: CardInterface }) => {
+    const response = await fetch("http://localhost:8000/register-card", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ setting1, setting2 }),
+      body: JSON.stringify(card),
     });
     const data = await response.json();
-    alert("Settings saved: " + JSON.stringify(data));
+    await loadCards();
+    setShowAddCardDialog(false);
   };
 
   const deleteCard = async (uid: string) => {
@@ -86,39 +81,42 @@ const SettingsForm: React.FC = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         rfidtv Card Management
       </Typography>
-      <Box display="flex" flexDirection="row">
-        <Box flexGrow="1">
-          <FormControl variant="outlined" fullWidth>
-            <OutlinedInput
-              id="search"
-              startAdornment={<SearchIcon />}
-              aria-describedby="search-helper-text"
-              onChange={(e) => setFilter(e.target.value)}
-            />
-            <FormHelperText id="search-helper-text">
-              Search existing cards
-            </FormHelperText>
-          </FormControl>
-        </Box>
-        <Box flexGrow="0" padding={1}>
-          <Button
-            variant="contained"
-            startIcon={<CreditCard />}
-            onClick={() => {
-              setShowAddCardDialog(true);
-            }}
-          >
-            Add card
-          </Button>
-        </Box>
-      </Box>
-      {showAddCardDialog && (
-        <Box>
-          <Box>Card</Box>
-          <Box>Title</Box>
+      {!showAddCardDialog && (
+        <Box display="flex" flexDirection="row">
+          <Box flexGrow="1">
+            <FormControl variant="outlined" fullWidth>
+              <OutlinedInput
+                id="search"
+                startAdornment={<SearchIcon />}
+                aria-describedby="search-helper-text"
+                onChange={(e) => setFilter(e.target.value)}
+              />
+              <FormHelperText id="search-helper-text">
+                Search existing cards
+              </FormHelperText>
+            </FormControl>
+          </Box>
+
+          <Box flexGrow="0" padding={1}>
+            <Button
+              variant="contained"
+              startIcon={<CreditCard />}
+              onClick={() => {
+                setShowAddCardDialog(true);
+              }}
+            >
+              Add card
+            </Button>
+          </Box>
         </Box>
       )}
-      <Grid container spacing={2}>
+      {showAddCardDialog && (
+        <NewCard
+          onSubmit={({ card }) => createCard({ card })}
+          onCancel={() => setShowAddCardDialog(false)}
+        />
+      )}
+      <Grid container spacing={2} marginTop={2}>
         {filteredCards.map((card) => (
           <Grid item xs={1} sm={3} key={card.uid}>
             <Paper
