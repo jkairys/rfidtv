@@ -6,4 +6,4 @@ loguru
 pydantic
 flask
 flask_cors
-dotenv
+python-dotenv==1.0.1
