@@ -1,5 +1,6 @@
 import os
-
+from pydantic import BaseModel
+from typing import Optional
 from plexapi.server import PlexServer
 from PIL import Image
 from io import BytesIO
@@ -37,6 +38,20 @@ CORS(app)
 
 cast_controller.load_casts()
 cast, plex_controller = cast_controller.get_cast(CAST_NAME)
+
+
+class Card(BaseModel):
+    uid: str
+
+
+class State(BaseModel):
+    card: Optional[Card] = None
+
+    def set_card(self, uid: str):
+        self.card = Card(uid=uid)
+
+
+state = State()
 
 
 @app.route("/casts", methods=["GET"])
@@ -90,16 +105,8 @@ def get_movie(movie_name: str):
         return jsonify({"error": str(e)}), 404
 
 
-@app.route("/play", methods=["POST"])
-def play_movie():
-    """Endpoint to play a movie on Chromecast."""
-    data = request.json
-    if not data or "movie_name" not in data:
-        return jsonify({"error": "Invalid request. 'movie_name' is required."}), 400
-
-    movie_name = data["movie_name"]
+def play_movie_by_name(movie_name: str):
     try:
-
         movie, plex_movie = rfidtv.plex.fetch_movie(server, movie_name)
         logger.debug(f"Playing movie {movie} on chromecast")
         cast_controller.play_on_chromecast(
@@ -110,31 +117,49 @@ def play_movie():
         return jsonify({"error": str(e)}), 404
 
 
+@app.route("/play", methods=["POST"])
+def play_movie():
+    """Endpoint to play a movie on Chromecast."""
+    data = request.json
+    if not data or "movie_name" not in data:
+        return jsonify({"error": "Invalid request. 'movie_name' is required."}), 400
+
+    movie_name = data["movie_name"]
+    play_movie_by_name(movie_name)
+
+
 @app.route("/status", methods=["GET"])
 def get_status():
     """Get the status of the chromecast"""
-    return jsonify(cast_controller.cast_status(cast))
+    return jsonify(
+        {
+            **cast_controller.cast_status(cast),
+            **{"card": state.card.uid if state.card else None},
+        }
+    )
 
 
 @app.route("/pause", methods=["POST"])
 def pause():
     """Endpoint to pause playback on Chromecast."""
     # cast, browser, plex_controller = get_cast(CAST_NAME)
-    if plex_controller.status.player_is_playing is True:
-        plex_controller.pause()
-        return jsonify({"status": "paused"})
-    else:
-        return jsonify({"error": "No active playback found."}), 400
+    # if plex_controller.status.player_is_playing is True:
+    plex_controller.pause()
+    return jsonify({"status": "paused"})
+    # else:
+    #     logger.warning("No active playback found.")
+    #     return jsonify({"error": "No active playback found."}), 400
 
 
 @app.route("/resume", methods=["POST"])
 def resume():
     """Endpoint to resume playback on Chromecast."""
-    if plex_controller.status.player_is_paused is True:
-        plex_controller.play()
-        return jsonify({"status": "resumed"})
-    else:
-        return jsonify({"error": "No paused playback found."}), 400
+    # if plex_controller.status.player_is_paused is True:
+    plex_controller.play()
+    # play_movie_by_name("Ice Age: Collision Course")
+    return jsonify({"status": "resumed"})
+    # else:
+    #     return jsonify({"error": "No paused playback found."}), 400
 
 
 @app.route("/stop", methods=["POST"])
@@ -181,6 +206,7 @@ def list_cards():
 def use_card(uid: str):
     """Endpoint to use a card."""
     try:
+        state.set_card(uid)
         card = rfidtv.card_database.lookup_card(uid)
         movie, plex_movie = rfidtv.plex.fetch_movie(server, card.title)
         response = 200
